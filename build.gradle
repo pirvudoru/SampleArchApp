@@ -1,0 +1,158 @@
+import io.gitlab.arturbosch.detekt.Detekt
+
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+buildscript {
+    ext.gradleVersion = '7.2.1'
+    ext.kotlinVersion = '1.7.0'
+    ext.playServicesVersion = '4.3.13'
+    ext.detektVersion = '1.20.0'
+    ext.firebaseCrashlyticsGradleVersion = '2.9.1'
+    ext.firebaseGradleAppDistributionVersion = "3.0.2"
+    ext.firebasePerformancePluginVersion = '1.4.1'
+
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            url "https://maven.google.com"
+            allowInsecureProtocol = true
+        }
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:$gradleVersion"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+        classpath "com.google.gms:google-services:$playServicesVersion"
+        classpath "com.google.firebase:firebase-crashlytics-gradle:$firebaseCrashlyticsGradleVersion"
+        classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseGradleAppDistributionVersion"
+        classpath "io.gitlab.arturbosch.detekt:detekt-gradle-plugin:$detektVersion"
+        classpath "com.google.firebase:perf-plugin:$firebasePerformancePluginVersion"
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+plugins {
+    id("io.gitlab.arturbosch.detekt").version("$detektVersion")
+}
+
+apply plugin: "io.gitlab.arturbosch.detekt"
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+        mavenCentral()
+        maven { url "https://maven.google.com" }
+        maven {
+            url 'http://bitmovin.bintray.com/maven'
+            allowInsecureProtocol = true
+        }
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+
+// Define versions in a single place
+ext {
+    // Sdk and tools
+    mobileMinSdkVersion = 24
+    tvMinSdkVersion = 21
+    minSdkVersion = Math.min(mobileMinSdkVersion, tvMinSdkVersion)
+    targetSdkVersion = 32
+    compileSdkVersion = 32
+
+    // App version
+    sprintNumber = 167
+    releaseNumber = 0
+    patchVersion = 0
+    currentYear = new Date().format('yyyy').toInteger()
+    androidVersionCode = currentYear * 1000000 + sprintNumber * 1000 + releaseNumber * 10 + patchVersion
+    androidVersionName = "${sprintNumber}.${releaseNumber}.${androidVersionCode}"
+    testInstrumentationRunner = 'androidx.test.runner.AndroidJUnitRunner'
+
+    // App dependencies
+    koinVersion = '3.2.0'
+    coroutinesVersion = "1.6.3"
+    archVersion = "2.2.0"
+    lifeCycleVersion = "2.5.0"
+    archTestingVersion = "2.1.0"
+    navVersion = "2.4.2"
+    archPagingVersion = "3.1.1"
+    retrofitVersion = '2.9.0'
+    supportLibraryVersion = '1.0.0'
+    compactSupportLibraryVersion = '1.4.2'
+    vectorSupportLibraryVersion = '1.1.0'
+    apptentiveVersion = '5.8.3'
+    picassoVersion = '2.71828'
+    gmsLibraryVersion = '17.0.0'
+    googleAuthVersion = '20.2.0'
+    gmsCastLibraryVersion = '21.0.1'
+    brazeSdkUiVersion = '21.0.0'
+    rxJavaVersion = '2.1.1'
+    rxNetwork = '3.0.8'
+    rxIdler = '0.11.0'
+    junitVersion = '4.13.2'
+    mockitoKotlinVersion = '2.2.0'
+    hamcrestVersion = '1.3'
+    hamkrestVersion = '1.8.0.1'
+    junitRunnerVersion = '1.1.3'
+    runnerVersion = '1.4.0'
+    espressoVersion = '3.4.0'
+    vizbeeVersion = '6.2.2'
+    constraintLayoutVersion = '2.1.4'
+    gsonVersion = '2.9.0'
+    exoPlayerVersion = '2.18.0'
+    okHttpVersion = '4.10.0'
+    billingVersion = '5.0.0'
+    firebaseMessagingVersion = '23.0.6'
+    firebaseBomVersion = '30.2.0'
+    detektVersion = "1.12.0"
+    appsFlyerVersion = '6.7.0'
+    dexmakerVersion = "2.28.1"
+    apolloVersion = '2.5.12'
+    roomVersion = "2.4.2"
+    installreferrer = "2.2"
+    customTabsVersion = "28.0.0"
+    tvProviderVersion = "28.0.0"
+    coreVersion = "1.4.0"
+    robolectricVersion = '4.8.1'
+    recycleViewVersion = "1.2.1"
+    androidxCoreVersion = "1.8.0"
+    androidMaterialVersion = "1.6.1"
+    androidxExifinterface = "1.3.3"
+    bitmovinVersion = "2.10.0"
+    shimmerVersion = "0.5.0"
+    workerVersion = "2.7.1"
+    viewPagerVersion = "1.0.0"
+    amazonAppstoreVersion = "3.0.3"
+    mediaHomeVideoVersion = "1.0.0"
+    tagManagerVersion = "18.0.1"
+    composeActivityVersion = "1.5.0"
+    accompanistVersion = "0.24.13-rc"
+    composeVersion = "1.2.0-rc03"
+    composeCompilerVersion = "1.2.0"
+    composePagingVersion = "1.0.0-alpha13"
+    coilComposeVersion = "2.1.0"
+}
+
+dependencies {
+    detekt "io.gitlab.arturbosch.detekt:detekt-cli:$detektVersion"
+    detekt "io.gitlab.arturbosch.detekt:detekt-formatting:$detektVersion"
+}
+
+detekt {
+    autoCorrect = true
+    allRules = false
+    buildUponDefaultConfig = false
+    disableDefaultRuleSets = false
+    toolVersion = "$detektVersion"
+    source = files("$projectDir/presentation/src/main/java", "$projectDir/domain/src/main/java", "$projectDir/data/src/main/java")
+}
+
+tasks.withType(Detekt) {
+    exclude(".*test.*")
+    exclude(".*/resources/.*")
+    exclude(".*/tmp/.*")
+}

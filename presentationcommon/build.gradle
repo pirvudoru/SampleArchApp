@@ -1,0 +1,62 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation project(':domain')
+    implementation project(':data')
+
+    implementation "io.insert-koin:koin-android:$koinVersion"
+    implementation "androidx.annotation:annotation:$vectorSupportLibraryVersion"
+    implementation "io.reactivex.rxjava2:rxandroid:${rxJavaVersion}"
+    implementation "com.github.pwittchen:reactivenetwork-rx2:${rxNetwork}"
+    implementation "androidx.paging:paging-runtime-ktx:$archPagingVersion"
+    implementation "androidx.room:room-runtime:$roomVersion"
+    implementation "com.google.android.exoplayer:exoplayer:$exoPlayerVersion"
+    implementation "com.google.android.exoplayer:extension-okhttp:$exoPlayerVersion"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifeCycleVersion"
+
+    // firebase
+    implementation platform("com.google.firebase:firebase-bom:$firebaseBomVersion")
+    implementation "com.google.firebase:firebase-crashlytics-ktx"
+    implementation 'com.google.firebase:firebase-common-ktx'
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+
+    // google
+    implementation "com.appsflyer:af-android-sdk:$appsFlyerVersion"
+
+    // data
+    implementation "com.squareup.retrofit2:retrofit:${retrofitVersion}"
+    implementation "com.google.code.gson:gson:${gsonVersion}"
+    implementation "com.squareup.retrofit2:converter-gson:${retrofitVersion}"
+    implementation "com.squareup.retrofit2:adapter-rxjava2:${retrofitVersion}"
+    implementation "com.squareup.okhttp3:logging-interceptor:${okHttpVersion}"
+    implementation "com.apollographql.apollo:apollo-runtime:$apolloVersion"
+
+    // Dependencies for Android unit tests
+    androidTestImplementation "junit:junit:${junitVersion}"
+    androidTestImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:${mockitoKotlinVersion}"
+    androidTestImplementation "com.linkedin.dexmaker:dexmaker-mockito:$dexmakerVersion"
+    androidTestImplementation "com.squareup.rx.idler:rx2-idler:$rxIdler"
+
+    androidTestImplementation("androidx.test.espresso:espresso-core:$espressoVersion", {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+}

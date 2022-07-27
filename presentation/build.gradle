@@ -1,0 +1,374 @@
+buildscript {
+    repositories {
+        google()
+        jcenter()
+    }
+
+    dependencies {
+        classpath "androidx.navigation:navigation-safe-args-gradle-plugin:$navVersion"
+    }
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'com.google.firebase.appdistribution'
+apply plugin: 'com.google.firebase.crashlytics'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'androidx.navigation.safeargs.kotlin'
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.firebase-perf'
+
+kapt {
+    useBuildCache = true
+}
+
+//noinspection GroovyMissingReturnStatement
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+
+    packagingOptions {
+        resources.excludes.add("META-INF/*")
+    }
+
+    defaultConfig {
+        applicationId "com.foo.foo"
+        minSdkVersion rootProject.ext.mobileMinSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName '1.0'
+        multiDexEnabled true
+
+        testInstrumentationRunner 'com.foo.presentation.RxTestRunner'
+    }
+
+    applicationVariants.all { variant ->
+        if (variant.buildType.name == "release") {
+            variant.outputs.forEach { output ->
+                output.versionCodeOverride = rootProject.ext.androidVersionCode
+                output.versionNameOverride = rootProject.ext.androidVersionName
+            }
+        }
+    }
+
+    signingConfigs {
+        foo {
+            storeFile file("../keystore.ks")
+            storePassword "aaaaaaa"
+            keyAlias "foo"
+            keyPassword "aaaaaaa"
+        }
+    }
+
+    buildFeatures {
+        dataBinding = true
+        compose = true
+        viewBinding = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion composeCompilerVersion
+        kotlinCompilerVersion kotlinVersion
+    }
+
+    flavorDimensions "market", "version", "env"
+
+    productFlavors {
+        auto {
+            dimension "market"
+        }
+        mobile {
+            dimension "market"
+        }
+
+        now {
+            dimension "version"
+
+            applicationIdSuffix = ".now"
+            manifestPlaceholders.scheme = "bar"
+
+            buildConfigField "String", "FLAVOR", "\"bar\""
+        }
+        tve {
+            dimension "version"
+            manifestPlaceholders.scheme = "foo"
+
+            buildConfigField "String", "FLAVOR", "\"foo\""
+        }
+
+        qa {
+            dimension "env"
+
+            applicationIdSuffix = ".qa"
+        }
+        prod {
+            dimension "env"
+        }
+    }
+
+    variantFilter { variant ->
+        def names = variant.flavors*.name
+        if (names.contains("amazon") && names.contains("now")) {
+            setIgnore(true)
+        }
+    }
+
+    buildTypes {
+        debug {
+            ext.enableCrashlytics = false
+        }
+
+        release {
+            debuggable false
+            minifyEnabled false
+            shrinkResources false
+
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard.cfg'
+            zipAlignEnabled true
+            signingConfig signingConfigs.foo
+
+            firebaseAppDistribution {
+                artifactType = "APK"
+                releaseNotesFile = ".firebase_distribution/APP_DISTRIBUTION_RELEASE_NOTES"
+                try {
+                    groupsFile = ".firebase_distribution/FIREBASE_APP_DISTRIBUTION_TESTER_GROUPS"
+                } catch (ignored) {
+                    //nothing to do here
+                }
+                try {
+                    testersFile = ".firebase_distribution/FIREBASE_APP_DISTRIBUTION_TESTERS"
+                } catch (ignored) {
+                    //nothing to do here
+                }
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+
+        // Always show the result of every unit test, even if it passes.
+        unitTests.all {
+            maxHeapSize = "1024m"
+            testLogging {
+                events 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
+            }
+            maxHeapSize = "2048m"
+        }
+    }
+
+    bundle {
+        language {
+            enableSplit = false
+        }
+        density {
+            enableSplit = true
+        }
+        abi {
+            enableSplit = true
+        }
+    }
+    sourceSets {
+        main {
+            res {
+                srcDirs 'src/main/res',
+                        'src/main/res/layouts/home',
+                        'src/main/res/layouts/movies',
+                        'src/main/res/layouts/originals',
+                        'src/main/res/layouts/my_list',
+                        'src/main/res/layouts/live_tv',
+                        'src/main/res/layouts/search',
+                        'src/main/res/layouts/settings',
+                        'src/main/res/layouts/startup',
+                        'src/main/res/layouts/player',
+                        'src/main/res/layouts/common',
+                        'src/main/res/layouts/common/details',
+                        'src/main/res/layouts/common/genre',
+                        'src/main/res/layouts/common/base_skeleton_view',
+                        'src/main/res/layouts/movie_details',
+                        'src/main/res/layouts/series_details',
+                        'src/main/res/layouts/episodes',
+                        'src/main/res/layouts/collection_deeplink'
+            }
+        }
+        now {
+            res {
+                srcDirs 'src/now/res',
+                        'src/now/res/layouts/startup',
+                        'src/now/res/layouts/offers',
+                        'src/now/res/layouts/cancel_instructions',
+                        'src/now/res/layouts/common'
+            }
+        }
+        tve {
+            res {
+                srcDirs 'src/tve/res',
+                        'src/tve/res/layouts/startup',
+                        'src/tve/res/layouts/common'
+            }
+        }
+    }
+    lint {
+        abortOnError true
+        ignoreWarnings false
+    }
+}
+
+repositories {
+    maven {
+        url "http://appboy.github.io/appboy-android-sdk/sdk"
+        allowInsecureProtocol = true
+    }
+    maven {
+        url "http://repo.claspws.tv/artifactory/libs"
+        allowInsecureProtocol = true
+    }
+    maven { url 'https://google.bintray.com/exoplayer/' }
+    maven {
+        url 'http://bitmovin.bintray.com/maven'
+        allowInsecureProtocol = true
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+
+    // Multidex support
+    implementation 'androidx.multidex:multidex:2.0.1'
+
+    // App's dependencies, including test
+    implementation files('libs/universal-image-loader-1.9.5.jar')
+
+    implementation project(':domain')
+    implementation project(':data')
+    implementation project(':presentationcommon')
+
+    implementation "androidx.appcompat:appcompat:$compactSupportLibraryVersion"
+    implementation "androidx.recyclerview:recyclerview:$recycleViewVersion"
+    implementation "androidx.core:core-ktx:$androidxCoreVersion"
+    implementation "com.google.android.material:material:$androidMaterialVersion"
+    implementation "androidx.exifinterface:exifinterface:$androidxExifinterface"
+    implementation "androidx.vectordrawable:vectordrawable:$vectorSupportLibraryVersion"
+    implementation "androidx.percentlayout:percentlayout:$supportLibraryVersion"
+    implementation "androidx.constraintlayout:constraintlayout:$constraintLayoutVersion"
+    implementation "androidx.paging:paging-runtime-ktx:$archPagingVersion"
+    implementation "androidx.navigation:navigation-fragment-ktx:$navVersion"
+    implementation "androidx.navigation:navigation-ui-ktx:$navVersion"
+    implementation "androidx.room:room-runtime:$roomVersion"
+    implementation "androidx.viewpager2:viewpager2:$viewPagerVersion"
+    implementation "com.google.android.gms:play-services-tagmanager-v4-impl:$tagManagerVersion"
+    kapt "androidx.room:room-compiler:$roomVersion"
+
+    implementation "androidx.lifecycle:lifecycle-extensions:$archVersion"
+    implementation "androidx.lifecycle:lifecycle-common-java8:$archVersion"
+
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion"
+
+    implementation "io.insert-koin:koin-android:$koinVersion"
+    implementation "androidx.annotation:annotation:$vectorSupportLibraryVersion"
+    implementation "io.reactivex.rxjava2:rxandroid:${rxJavaVersion}"
+    implementation "com.github.pwittchen:reactivenetwork-rx2:${rxNetwork}"
+    implementation "com.google.android.exoplayer:exoplayer:$exoPlayerVersion"
+    implementation "com.google.android.exoplayer:extension-okhttp:$exoPlayerVersion"
+    implementation "com.squareup.okhttp3:okhttp-urlconnection:$okHttpVersion"
+    implementation "com.squareup.picasso:picasso:$picassoVersion"
+    implementation "com.android.support:customtabs:$customTabsVersion"
+    implementation "androidx.work:work-runtime-ktx:$workerVersion"
+
+    // google
+    implementation "com.appsflyer:af-android-sdk:$appsFlyerVersion"
+    implementation "tv.vizbee:android-remote-sdk:$vizbeeVersion"
+    implementation "com.appboy:android-sdk-ui:${brazeSdkUiVersion}"
+    implementation "com.apptentive:apptentive-android:${apptentiveVersion}"
+    implementation "com.android.installreferrer:installreferrer:${installreferrer}"
+    implementation "com.google.android.gms:play-services-auth:${googleAuthVersion}"
+    implementation "com.google.android.gms:play-services-cast:${gmsCastLibraryVersion}"
+    implementation "com.google.android.gms:play-services-cast-framework:${gmsCastLibraryVersion}"
+    implementation "com.google.android.gms:play-services-gcm:${gmsLibraryVersion}"
+    implementation "com.google.firebase:firebase-messaging:$firebaseMessagingVersion"
+    implementation "com.google.android.mediahome:video:$mediaHomeVideoVersion"
+
+    // Compose
+    implementation "androidx.compose.material:material:$composeVersion"
+    implementation "androidx.compose.animation:animation:$composeVersion"
+    implementation "androidx.compose.ui:ui-tooling:$composeVersion"
+    implementation "androidx.compose.material:material-icons-extended:$composeVersion"
+    implementation "androidx.compose.runtime:runtime:$composeVersion"
+    implementation "androidx.compose.compiler:compiler:1.2.0"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:$lifeCycleVersion"
+    implementation "io.insert-koin:koin-androidx-compose:$koinVersion"
+    implementation "androidx.activity:activity-compose:$composeActivityVersion"
+    implementation "androidx.paging:paging-compose:$composePagingVersion"
+    implementation "io.coil-kt:coil-compose:$coilComposeVersion"
+    implementation "com.google.accompanist:accompanist-placeholder-material:$accompanistVersion"
+    implementation "com.google.accompanist:accompanist-webview:$accompanistVersion"
+
+    // Bitmovin
+    implementation "com.bitmovin.analytics:collector-exoplayer:$bitmovinVersion"
+
+    // Facebook Shimmer
+    implementation "com.facebook.shimmer:shimmer:$shimmerVersion"
+
+    // now
+    nowImplementation project(":domainnow")
+    nowImplementation project(":datanow")
+    nowImplementation project(":presentationcommonnow")
+
+    nowImplementation "com.android.billingclient:billing:$billingVersion"
+
+    // data
+    implementation "com.squareup.retrofit2:retrofit:${retrofitVersion}"
+    implementation "com.google.code.gson:gson:${gsonVersion}"
+    implementation "com.squareup.retrofit2:converter-gson:${retrofitVersion}"
+    implementation "com.squareup.retrofit2:adapter-rxjava2:${retrofitVersion}"
+    implementation "com.squareup.okhttp3:logging-interceptor:${okHttpVersion}"
+    implementation "com.apollographql.apollo:apollo-runtime:$apolloVersion"
+
+    // firebase
+    implementation platform("com.google.firebase:firebase-bom:$firebaseBomVersion")
+    implementation "com.google.firebase:firebase-crashlytics-ktx"
+    implementation 'com.google.firebase:firebase-common-ktx'
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+    implementation 'com.google.firebase:firebase-perf-ktx'
+
+    // Dependencies for local unit tests
+    testImplementation project(':testhelpers')
+    implementation "androidx.test.espresso:espresso-idling-resource:$espressoVersion"
+    testImplementation "junit:junit:${junitVersion}"
+    testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:${mockitoKotlinVersion}"
+    testImplementation "com.natpryce:hamkrest:$hamkrestVersion"
+    testImplementation "androidx.arch.core:core-testing:$archTestingVersion"
+    testImplementation "io.insert-koin:koin-test:$koinVersion"
+    testImplementation "org.robolectric:robolectric:$robolectricVersion"
+
+    // Android Testing Support Library's runner and rules
+    androidTestImplementation "androidx.test.ext:junit:$junitRunnerVersion"
+    androidTestImplementation "androidx.test:rules:$runnerVersion"
+    androidTestImplementation "com.natpryce:hamkrest:$hamkrestVersion"
+
+    // Dependencies for Android unit tests
+    androidTestImplementation "junit:junit:${junitVersion}"
+    androidTestImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:${mockitoKotlinVersion}"
+    androidTestImplementation "io.insert-koin:koin-test:$koinVersion"
+
+    // Espresso UI Testing
+    androidTestImplementation "androidx.test.espresso:espresso-core:$espressoVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-contrib:$espressoVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-intents:$espressoVersion"
+    androidTestImplementation "com.squareup.rx.idler:rx2-idler:$rxIdler"
+
+    // Resolve conflicts between main and test APK:
+    androidTestImplementation "androidx.appcompat:appcompat:$compactSupportLibraryVersion"
+    androidTestImplementation "androidx.recyclerview:recyclerview:$supportLibraryVersion"
+    androidTestImplementation "com.google.android.material:material:$supportLibraryVersion"
+}

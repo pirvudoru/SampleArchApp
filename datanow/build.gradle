@@ -1,0 +1,62 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'com.apollographql.apollo'
+
+buildscript {
+    repositories {
+        google()
+        jcenter()
+    }
+
+    dependencies {
+        classpath "com.apollographql.apollo:apollo-gradle-plugin:$apolloVersion"
+    }
+}
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+
+        testInstrumentationRunner rootProject.ext.testInstrumentationRunner
+    }
+}
+
+apollo {
+    customTypeMapping = [
+            'ISO8601DATETIME': "java.util.Date"
+    ]
+}
+
+dependencies {
+    // App's dependencies, including test
+    implementation project(':data')
+    implementation project(':domainnow')
+    implementation project(':domain')
+
+    implementation "androidx.appcompat:appcompat:$compactSupportLibraryVersion"
+    implementation "com.squareup.retrofit2:retrofit:${retrofitVersion}"
+    implementation "com.squareup.retrofit2:converter-gson:${retrofitVersion}"
+    implementation "com.squareup.retrofit2:adapter-rxjava2:${retrofitVersion}"
+    implementation "com.squareup.okhttp3:logging-interceptor:${okHttpVersion}"
+    implementation "com.google.code.gson:gson:${gsonVersion}"
+    implementation "com.apollographql.apollo:apollo-runtime:$apolloVersion"
+    implementation "com.apollographql.apollo:apollo-rx2-support:$apolloVersion"
+
+    // Dependencies for Android unit tests
+    testImplementation "junit:junit:${junitVersion}"
+    testImplementation "org.hamcrest:hamcrest-all:$hamcrestVersion"
+    testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:${mockitoKotlinVersion}"
+    testImplementation "com.natpryce:hamkrest:$hamkrestVersion"
+
+    // Dependencies for Android unit tests
+    androidTestImplementation "junit:junit:${junitVersion}"
+    androidTestImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:${mockitoKotlinVersion}"
+    androidTestImplementation "com.linkedin.dexmaker:dexmaker-mockito:$dexmakerVersion"
+
+    androidTestImplementation("androidx.test.espresso:espresso-core:$espressoVersion", {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+}

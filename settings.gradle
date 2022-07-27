@@ -1,0 +1,6 @@
+include ':presentationcommon', ':testhelpers', ':presentationcommonnow'
+include ':presentation', ':presentationtv'
+include ':domain'
+include ':domainnow'
+include ':data'
+include ':datanow'

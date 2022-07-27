@@ -1,0 +1,176 @@
+buildscript {
+    repositories {
+        google()
+    }
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'com.google.firebase.crashlytics'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.gms.google-services'
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        applicationId "com.foo.foo"
+
+        minSdkVersion rootProject.ext.tvMinSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode rootProject.ext.androidVersionCode
+        versionName rootProject.ext.androidVersionName
+    }
+
+    signingConfigs {
+        foo {
+            storeFile file("../keystore.ks")
+            storePassword "aaaaaaa"
+            keyAlias "foo"
+            keyPassword "aaaaaaa"
+        }
+    }
+
+    buildFeatures {
+        dataBinding = true
+        viewBinding = true
+    }
+
+    flavorDimensions "market", "version"
+
+    productFlavors {
+        google {
+            dimension "market"
+        }
+        amazon {
+            dimension "market"
+        }
+        now {
+            dimension "version"
+
+            buildConfigField "String", "FLAVOR", "\"bar\""
+        }
+        tve {
+            dimension "version"
+
+            buildConfigField "String", "FLAVOR", "\"foo\""
+        }
+        android.applicationVariants.all { variant ->
+            switch (variant.flavorName) {
+                case ~/amazonTve/:
+                    variant.mergedFlavor.setApplicationId("com.amazon.rialto.cordova.webapp.webappebaff62698e4422da601235d5a704f45")
+                    break
+                case ~/amazonNow/:
+                    variant.mergedFlavor.setApplicationId("com.bar.firetvapp")
+                    break
+                case ~/googleNow/:
+                    variant.mergedFlavor.setApplicationId("com.foo.foo.now")
+                    break
+                case ~/googleTve/:
+                    variant.mergedFlavor.setApplicationId("com.foo.foo")
+                    break
+                default:
+                    variant.mergedFlavor.setApplicationId("com.foo.foo")
+                    break
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            ext.enableCrashlytics = false
+        }
+
+        release {
+            debuggable false
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            zipAlignEnabled true
+            signingConfig signingConfigs.foo
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+repositories {
+    google()
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation project(':domain')
+    implementation project(':data')
+    implementation project(':presentationcommon')
+
+    implementation "androidx.leanback:leanback:$supportLibraryVersion"
+    implementation "androidx.constraintlayout:constraintlayout:$constraintLayoutVersion"
+    implementation "androidx.legacy:legacy-support-v4:$supportLibraryVersion"
+    implementation "androidx.appcompat:appcompat:$compactSupportLibraryVersion"
+    implementation "com.github.pwittchen:reactivenetwork-rx2:${rxNetwork}"
+    implementation "com.google.android.gms:play-services-auth:${googleAuthVersion}"
+
+    implementation "androidx.lifecycle:lifecycle-extensions:$archVersion"
+    implementation "androidx.lifecycle:lifecycle-common-java8:$archVersion"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifeCycleVersion"
+
+    implementation "io.insert-koin:koin-android:$koinVersion"
+    implementation "androidx.annotation:annotation:$vectorSupportLibraryVersion"
+    implementation "io.reactivex.rxjava2:rxandroid:${rxJavaVersion}"
+
+    implementation "com.squareup.picasso:picasso:${picassoVersion}"
+
+    implementation "com.appsflyer:af-android-sdk:$appsFlyerVersion"
+
+    implementation "com.android.support:support-tv-provider:$tvProviderVersion"
+
+    // now
+    nowImplementation project(":domainnow")
+    nowImplementation project(":datanow")
+    nowImplementation project(":presentationcommonnow")
+
+    nowImplementation "com.android.billingclient:billing:$billingVersion"
+    implementation "com.amazon.device:amazon-appstore-sdk:$amazonAppstoreVersion"
+
+    // data
+    implementation "com.squareup.retrofit2:retrofit:${retrofitVersion}"
+    implementation "com.google.code.gson:gson:${gsonVersion}"
+    implementation "com.squareup.retrofit2:converter-gson:${retrofitVersion}"
+    implementation "com.squareup.retrofit2:adapter-rxjava2:${retrofitVersion}"
+    implementation "com.squareup.okhttp3:logging-interceptor:${okHttpVersion}"
+    implementation "com.apollographql.apollo:apollo-runtime:$apolloVersion"
+
+    // firebase
+    implementation platform("com.google.firebase:firebase-bom:$firebaseBomVersion")
+    implementation "com.google.firebase:firebase-crashlytics-ktx"
+    implementation 'com.google.firebase:firebase-common-ktx'
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+
+    // Dependencies for local unit tests
+    testImplementation project(':testhelpers')
+    implementation "androidx.test.espresso:espresso-idling-resource:$espressoVersion"
+    testImplementation "junit:junit:${junitVersion}"
+    testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:${mockitoKotlinVersion}"
+    testImplementation "com.natpryce:hamkrest:$hamkrestVersion"
+    testImplementation "androidx.arch.core:core-testing:$archTestingVersion"
+    testImplementation "io.insert-koin:koin-test:$koinVersion"
+
+    // Dependencies for Android unit tests
+    androidTestImplementation "junit:junit:${junitVersion}"
+    androidTestImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:${mockitoKotlinVersion}"
+    androidTestImplementation "com.linkedin.dexmaker:dexmaker-mockito:$dexmakerVersion"
+
+    androidTestImplementation("androidx.test.espresso:espresso-core:$espressoVersion", {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+}
+
+android.applicationVariants.all { variant ->
+    if (variant.name.contains('amazon')) {
+        project.tasks.getByName('process' + variant.name.capitalize() + 'GoogleServices').enabled = false
+    }
+}

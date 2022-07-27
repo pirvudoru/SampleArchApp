@@ -1,0 +1,48 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+
+        testInstrumentationRunner rootProject.ext.testInstrumentationRunner
+    }
+}
+
+dependencies {
+    implementation project(':domain')
+    implementation project(':data')
+    implementation project(':domainnow')
+    implementation project(':datanow')
+    implementation project(':presentationcommon')
+
+    implementation "io.insert-koin:koin-android:$koinVersion"
+    implementation "androidx.annotation:annotation:$vectorSupportLibraryVersion"
+    implementation "io.reactivex.rxjava2:rxandroid:${rxJavaVersion}"
+
+    implementation "androidx.lifecycle:lifecycle-extensions:$archVersion"
+
+    implementation "com.android.billingclient:billing:$billingVersion"
+    implementation 'com.amazon.device:amazon-appstore-sdk:3.0.2'
+
+    implementation "androidx.room:room-runtime:$roomVersion"
+    kapt "androidx.room:room-compiler:$roomVersion"
+
+    // data
+    implementation "com.squareup.retrofit2:retrofit:${retrofitVersion}"
+    implementation "com.apollographql.apollo:apollo-runtime:$apolloVersion"
+
+    // Dependencies for local unit tests
+    testImplementation project(':testhelpers')
+    implementation "androidx.test.espresso:espresso-idling-resource:$espressoVersion"
+    testImplementation "junit:junit:${junitVersion}"
+    testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:${mockitoKotlinVersion}"
+    testImplementation "com.natpryce:hamkrest:$hamkrestVersion"
+    testImplementation "androidx.arch.core:core-testing:$archTestingVersion"
+    testImplementation "io.insert-koin:koin-test:$koinVersion"
+    testImplementation "org.robolectric:robolectric:$robolectricVersion"
+}

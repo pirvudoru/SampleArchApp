@@ -1,0 +1,18 @@
+apply plugin: 'java-library'
+apply plugin: 'kotlin'
+
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
+
+dependencies {
+    implementation "io.reactivex.rxjava2:rxjava:${rxJavaVersion}"
+
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:$coroutinesVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$coroutinesVersion"
+
+    // Dependencies for local unit tests
+    testImplementation "junit:junit:${junitVersion}"
+    testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:${mockitoKotlinVersion}"
+    testImplementation "com.natpryce:hamkrest:$hamkrestVersion"
+}

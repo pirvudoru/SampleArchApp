@@ -1,0 +1,83 @@
+buildscript {
+    repositories {
+        google()
+        jcenter()
+    }
+
+    dependencies {
+        classpath "com.apollographql.apollo:apollo-gradle-plugin:$apolloVersion"
+    }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'com.apollographql.apollo'
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+
+        testInstrumentationRunner rootProject.ext.testInstrumentationRunner
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8.toString()
+    }
+
+    testOptions  {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+}
+
+apollo {
+    customTypeMapping = [
+            'ISO8601DATETIME': "java.util.Date",
+            'Second'         : "java.lang.Integer",
+            'JSON'           : "java.lang.String"
+    ]
+}
+
+dependencies {
+    // App's dependencies, including test
+    implementation project(':domain')
+
+    implementation "androidx.appcompat:appcompat:$compactSupportLibraryVersion"
+    implementation "com.squareup.retrofit2:retrofit:${retrofitVersion}"
+    implementation "com.squareup.retrofit2:converter-gson:${retrofitVersion}"
+    implementation "com.squareup.retrofit2:adapter-rxjava2:${retrofitVersion}"
+    implementation "com.squareup.okhttp3:logging-interceptor:$okHttpVersion"
+    implementation "com.google.code.gson:gson:${gsonVersion}"
+    implementation "com.apollographql.apollo:apollo-runtime:$apolloVersion"
+    implementation "com.apollographql.apollo:apollo-rx2-support:$apolloVersion"
+    implementation "androidx.room:room-runtime:$roomVersion"
+
+    // Dependencies for Android unit tests
+    testImplementation "junit:junit:${junitVersion}"
+    testImplementation "org.hamcrest:hamcrest-all:$hamcrestVersion"
+    testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:${mockitoKotlinVersion}"
+    testImplementation "com.natpryce:hamkrest:$hamkrestVersion"
+    testImplementation "androidx.test:core:$coreVersion"
+    testImplementation "androidx.test.ext:junit:$junitRunnerVersion"
+    testImplementation "org.robolectric:robolectric:$robolectricVersion"
+
+    // Dependencies for Android unit tests
+    androidTestImplementation "junit:junit:${junitVersion}"
+    androidTestImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:${mockitoKotlinVersion}"
+    androidTestImplementation "com.linkedin.dexmaker:dexmaker-mockito:$dexmakerVersion"
+
+    androidTestImplementation("androidx.test.espresso:espresso-core:$espressoVersion", {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+
+    kapt "androidx.room:room-compiler:$roomVersion"
+}
